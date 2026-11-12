@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Suno Studio</title>
+<style>
+:root{--bg:#0d0a18;--c:#1a162b;--c2:#120f20;--b:#2e2750;--t:#e8e6f5;--m:#9a94b8;--a:#8b5cf6;--a2:#ec4899;--w:#f59e0b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tajawal,'Segoe UI',Tahoma,sans-serif;color:var(--t);min-height:100vh;background:radial-gradient(circle at 10% 0,#2a1556 0,transparent 35%),radial-gradient(circle at 90% 100%,#3d1033 0,transparent 35%),var(--bg);background-attachment:fixed}
+header{position:sticky;top:0;z-index:9;background:#0d0a18ee;backdrop-filter:blur(10px);border-bottom:1px solid var(--b);display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 18px}
+.logo{font-weight:800;font-size:19px;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bpm{display:flex;align-items:center;gap:8px;flex:1;min-width:250px;max-width:440px;font-size:14px}
+.bpm input[type=range]{flex:1;accent-color:var(--a)}
+input[type=text],select,textarea{background:var(--c2);color:var(--t);border:1px solid var(--b);border-radius:10px;padding:8px 12px;font:inherit;font-size:14px}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:0;border-color:var(--a);box-shadow:0 0 0 2px #8b5cf655}
+button,label.btn{font:inherit;cursor:pointer}
+.btn{background:var(--c2);color:var(--t);border:1px solid var(--b);border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;transition:.15s;display:inline-block}
+.btn:hover{border-color:var(--a);background:#241d42}
+.pri{background:linear-gradient(90deg,var(--a),#6d28d9);border-color:transparent}
+.dng{color:#fca5a5}
+nav{display:flex;gap:4px;padding:12px 18px 0;max-width:1400px;margin:auto;flex-wrap:wrap}
+nav button{background:none;color:var(--m);border:0;border-bottom:3px solid transparent;padding:10px 18px;font-weight:700;font-size:15px}
+nav button.on{color:#fff;border-color:var(--a2)}
+main{max-width:1400px;margin:auto;padding:14px 18px 40px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--c);border:1px solid var(--b);border-radius:16px;padding:16px}
+.out{margin-bottom:16px}
+.out textarea{width:100%;min-height:150px;resize:vertical;font-family:Consolas,'JetBrains Mono',monospace;font-size:15px;line-height:1.7;direction:ltr;text-align:left;margin:10px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sp{flex:1;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.pn h3{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between}
+.pn h3 small{color:var(--a2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow:auto;padding:2px}
+.chip{background:var(--c2);color:var(--t);border:1px solid var(--b);border-radius:999px;padding:5px 12px;font-size:13px;transition:.12s}
+.chip:hover{border-color:var(--a)}
+.chip.on{background:linear-gradient(90deg,var(--a),var(--a2));border-color:transparent;color:#fff;box-shadow:0 0 12px #8b5cf655}
+.cnt{font-size:12px;color:var(--m)}.cnt.bad{color:#f87171;font-weight:700}
+.warn{color:var(--w);font-size:13px}
+.lay{display:grid;grid-template-columns:1fr 390px;gap:14px;align-items:start}
+.side{position:sticky;top:80px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 100px);overflow:auto}
+.side .chips{max-height:150px}
+.side h3{margin:0 0 8px;font-size:14px}
+#ed{width:100%;min-height:540px;resize:vertical;line-height:1.9;font-size:16px;margin:10px 0}
+.ex{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ex textarea{width:100%;min-height:340px;margin-top:10px;line-height:1.7}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,90px);background:var(--c);border:1px solid var(--a);padding:10px 20px;border-radius:12px;opacity:0;transition:.25s;z-index:20}
+#toast.on{transform:translate(-50%,0);opacity:1}
+.mi{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--b)}
+.mi a{color:#a78bfa}
+@media(max-width:900px){.lay,.ex{grid-template-columns:1fr}.side{position:static;max-height:none}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<span class="logo">Suno Studio</span>
+<input type="text" id="ti" data-p="ph" oninput="rd()">
+<div class="bpm"><input type="checkbox" id="ub" onchange="rd()" title="BPM"><input type="range" id="bp" min="50" max="200" oninput="rd()"><b><span id="bv"></span> BPM</b></div>
+<select id="ver" onchange="rd()"><option value="0">v3.5 / v4 (200 · 3000)</option><option value="1">v4.5+ (1000 · 5000)</option></select>
+<button class="btn" onclick="setKey()">🔑 Gemini</button><button class="btn" id="lgb" onclick="lg()"></button>
+</header>
+<nav>
+<button data-g="st" data-t="t1" onclick="go('st')"></button>
+<button data-g="ly" data-t="t2" onclick="go('ly')"></button>
+<button data-g="ex" data-t="t3" onclick="go('ex')"></button>
+<button data-g="mi" data-t="t4" onclick="go('mi')"></button>
+</nav>
+<main>
+<section class="tab on" id="t-st">
+<div class="card out">
+<div class="row"><b data-t="o1"></b><span class="sp"></span><span class="cnt" id="sc"></span><button class="btn pri" onclick="cp('so')" data-t="cps"></button><button class="btn pri" onclick="ai()" data-t="ai"></button><button class="btn" onclick="sug()" data-t="sg"></button><button class="btn dng" onclick="clS()" data-t="clr"></button></div>
+<textarea id="so" readonly></textarea>
+<div class="row"><input type="text" id="ex" class="sp" data-p="exp" oninput="rd()"><button class="btn" onclick="cp('ex')" data-t="cpx"></button></div>
+<div class="warn" id="wr" style="margin-top:8px"></div>
+</div>
+<div class="grid" id="pg"></div>
+</section>
+
+<section class="tab" id="t-ly">
+<div class="lay">
+<div class="card">
+<div class="row"><b data-t="edt"></b><span class="sp"></span><span class="cnt" id="ls"></span></div>
+<textarea id="ed" dir="auto" data-p="edp" oninput="u2()"></textarea>
+<p class="cnt" data-t="hint" style="margin:0 0 8px"></p>
+<div class="row"><button class="btn pri" onclick="gen()" data-t="gn"></button><button class="btn pri" onclick="ai()" data-t="ai"></button><button class="btn pri" onclick="auto()" data-t="aut"></button><button class="btn" onclick="sug()" data-t="sg"></button><label class="cnt"><input type="checkbox" id="io" checked> <span data-t="io"></span></label><button class="btn" onclick="cp('ed')" data-t="cpl"></button><button class="btn dng" onclick="clL()" data-t="cll"></button><span class="sp"></span><span class="cnt" id="du"></span></div>
+</div>
+<div class="side">
+<div class="card"><h3 data-t="tpl"></h3><div class="chips" id="ct"></div></div>
+<div class="card"><h3 data-t="str"></h3><div class="chips" id="cs"></div></div>
+<div class="card"><h3 data-t="prf"></h3><div class="chips" id="cv"></div></div>
+<div class="card"><h3 data-t="sol"></h3><div class="chips" id="ci"></div></div>
+<div class="card"><h3 data-t="fx"></h3><div class="chips" id="cf"></div></div>
+</div>
+</div>
+</section>
+
+<section class="tab" id="t-ex">
+<div class="ex">
+<div class="card"><div class="row"><b data-t="sty"></b><span class="sp"></span><button class="btn pri" onclick="cp('xs')" data-t="cps"></button></div><textarea id="xs" readonly dir="ltr"></textarea></div>
+<div class="card"><div class="row"><b data-t="lyr"></b><span class="sp"></span><button class="btn pri" onclick="cp('xl')" data-t="cpl"></button></div><textarea id="xl" readonly dir="auto"></textarea></div>
+</div>
+<div class="row" style="margin-top:14px"><button class="btn" onclick="exTxt()" data-t="dlt"></button><button class="btn" onclick="exJ()" data-t="dlj"></button><label class="btn" for="jf" data-t="ldj"></label><input type="file" id="jf" accept=".json" hidden onchange="ldJ(this)"></div>
+</section>
+
+<section class="tab" id="t-mi">
+<div class="card"><p class="cnt" data-t="mid"></p><label class="btn pri" for="mf" data-t="mia"></label><input type="file" id="mf" accept=".mid,.midi" hidden onchange="mAdd(this)"><div id="ml" style="margin-top:12px"></div></div>
+</section>
+</main>
+<div id="toast"></div>
+
+<script>
+const $=i=>document.getElementById(i),L=s=>s.split(';').map(x=>x.split('|'));
+const T={
+ph:['اسم المشروع','Project name'],t1:['الستايل','Style'],t2:['الكلمات والهيكل','Lyrics & structure'],t3:['المعاينة والتصدير','Preview & export'],t4:['مكتبة MIDI','MIDI library'],
+o1:['مخرج الستايل (الصقه في خانة Style)','Style output (paste into Style box)'],cps:['نسخ الستايل','Copy style'],clr:['مسح الاختيارات','Clear selection'],
+exp:['استبعاد (Exclude): مثال no autotune, no rap','Exclude: e.g. no autotune, no rap'],cpx:['نسخ الاستبعاد','Copy exclude'],cuph:['وسم مخصص','Custom tag'],
+tpl:['قوالب هيكل جاهزة','Structure templates'],str:['فصول الأغنية','Sections'],prf:['أداء الفصل الحالي (ضع المؤشر داخله)','Assign to current section (cursor inside)'],sol:['صولو وآلات','Solos & instruments'],fx:['مؤثرات وانتقالات','FX & transitions'],
+edt:['محرر الكلمات','Lyrics editor'],edp:['اكتب الكلمات هنا ثم أدرج الوسوم من اللوحة الجانبية','Write lyrics, then insert tags from the side panel'],cpl:['نسخ الكلمات','Copy lyrics'],cll:['مسح الكلمات','Clear lyrics'],
+sty:['الستايل','Style'],lyr:['الكلمات','Lyrics'],dlt:['تنزيل TXT','Download TXT'],dlj:['حفظ المشروع','Save project'],ldj:['فتح مشروع','Open project'],
+mid:['ملفات MIDI تُربط بالنوع المختار وتُحفظ محلياً للرجوع إليها في الـ DAW، ولا تُرسل إلى Suno.','MIDI files link to the selected genre and stay local for your DAW. They are not sent to Suno.'],mia:['إضافة ملف MIDI','Add MIDI file'],nom:['لا توجد ملفات بعد','No files yet'],
+ok:['تم النسخ','Copied'],em:['لا يوجد نص للنسخ','Nothing to copy'],cf:['سيُستبدل النص الحالي. متابعة؟','This replaces your text. Continue?'],
+w1:['تعارض: Instrumental مع أصوات غنائية','Conflict: Instrumental with vocals'],w2:['أكثر من 4 أنواع موسيقية قد تشتّت Suno','4+ genres may confuse Suno'],w3:['الستايل يتجاوز الحد المسموح','Style exceeds the limit'],w4:['رجل وامرأة معاً: فكّر في Duet','Male + Female: consider Duet'],
+ln:['سطر','lines'],wd:['كلمة','words'],du:['المدة التقريبية','Est. length'],
+aut:['تقسيم تلقائي إلى فصول','Auto-structure'],sg:['اقتراح ستايل من الكلمات','Suggest style from lyrics'],io:['Intro/Outro تلقائي','Auto Intro/Outro'],
+hint:['افصل الفصول بسطر فارغ أو بسطر من *** أو ---، ثم اضغط «تقسيم تلقائي». التكرار يُعتبر كورال.','Separate sections with a blank line or a *** / --- line, then press Auto-structure. Repeated blocks become the chorus.'],
+au:['تم التقسيم إلى','Split into'],fs:['فصول — Ctrl+Z للتراجع','sections — Ctrl+Z to undo'],sgd:['تم اقتراح','Suggested'],sgt:['وسماً — عدّلها كما تشاء','tags — edit freely'],cf2:['سيستبدل اختياراتك الحالية. متابعة؟','This replaces your current selection. Continue?'],
+gn:['✨ اكتب أغنية بـ Gemini','✨ Write with Gemini'],ai:['✨ تحليل كامل بـ Gemini','✨ Analyze with Gemini'],wt:['جارٍ العمل مع Gemini...','Working with Gemini...'],ok2:['تم بنجاح','Done'],
+ip:['ما فكرة الأغنية؟ مثال: فراق صديق قديم بأسلوب طربي','Song idea? e.g. missing an old friend, tarab style'],ky:['الصق مفتاح Gemini API (يُحفظ في هذا المتصفح فقط)','Paste Gemini API key (stored in this browser only)'],md:['اسم الموديل','Model name']};
+const t=k=>T[k][S.lang=='ar'?0:1];
+const P=[
+{id:'g',n:['الأنواع الموسيقية','Genres'],i:L('Arabic Tarab|طرب عربي;Khaleeji|خليجي;Shaabi|شعبي;Mahraganat|مهرجانات;Levantine Dabke|دبكة شامية;Andalusian Muwashshah|موشحات;Arabic Pop|بوب عربي;Egyptian Pop|بوب مصري;Iraqi Maqam|مقام عراقي;Sufi|صوفي;Islamic Nasheed|إنشاد;Bedouin|بدوي;Nubian|نوبي;Rai|راي;Gnawa|ڨناوة;Arabic Trap|تراب عربي;Pop|بوب;Rock|روك;Rap|راب;Hip Hop|هيب هوب;R&B;Soul|سول;Funk;Jazz|جاز;Blues;Folk|فولك;Country;Latin;Reggae;Reggaeton;Afrobeat;Electronic|إلكترونيك;EDM;House;Techno;Trance;Synthwave;Lo-Fi;Metal|ميتال;Punk;Indie;Disco;Gospel;Ballad|بالاد;Trap;Drill;K-Pop;Classical|كلاسيك;Cinematic|سينمائي;Orchestral|أوركسترا;Ambient;Flamenco;Bossa Nova;Acoustic')},
+{id:'m',s:1,n:['المقام / السلم','Maqam / Scale'],i:L('Hijaz maqam|حجاز;Bayati maqam|بياتي;Rast maqam|راست;Nahawand maqam|نهاوند;Sikah maqam|سيكاه;Saba maqam|صبا;Kurd maqam|كرد;Ajam maqam|عجم;Nawa Athar maqam|نوى أثر;Major key|ماجور;Minor key|مينور')},
+{id:'d',n:['الأجواء والمشاعر','Moods'],i:L('Emotional|عاطفي;Romantic|رومانسي;Melancholic|حزين;Nostalgic|حنين;Hopeful|متفائل;Uplifting|مبهج;Energetic|حماسي;Epic|ملحمي;Dark|مظلم;Dreamy|حالم;Ethereal|أثيري;Mysterious|غامض;Soulful;Heartfelt;Majestic|مهيب;Intimate|حميمي;Festive|احتفالي;Calm|هادئ;Sensual;Dramatic;Triumphant;Longing;Bittersweet;Playful;Warm|دافئ;Aggressive|غاضب;Introspective;Atmospheric;Passionate')},
+{id:'n',n:['الآلات','Instruments'],i:L('Oud|عود;Qanun|قانون;Ney|ناي;Darbuka|دربكة;Riq|رق;Daf|دف;Mizmar|مزمار;Rababa|ربابة;Buzuq|بزق;Arghul|أرغول;Tabla|طبلة;Acoustic Guitar|جيتار أكوستيك;Electric Guitar|جيتار كهربائي;Piano|بيانو;Bass|باص;Drums|درامز;Violin|كمان;Cello|تشيللو;Strings|وتريات;String Orchestra;Brass;Trumpet|ترومبيت;Saxophone|ساكسفون;Flute|فلوت;Synthesizer|سينثيسايزر;Keyboard;Organ|أورغ;Harp|هارب;Accordion|أكورديون;808 Bass;Percussion|إيقاع;Handclaps|تصفيق;Pads;Banjo;Ukulele;Harmonica;Sitar')},
+{id:'v',n:['الأصوات والأداء','Vocals'],i:L('Male Vocal|صوت رجل;Female Vocal|صوت امرأة;Duet|ثنائي;Choir|كورال;Backing Vocals|كورال خلفي;Group Vocals;Tenor;Baritone;Alto;Soprano;Deep Voice;Powerful Vocals;Soft Vocals;Raspy;Breathy;Smooth Vocals;Husky;Soaring;Falsetto;Emotional Vocals;Melismatic|زخرفة صوتية;Ornamented Arabic Vocals;Whispered|همس;Spoken Word|إلقاء;Rap Vocals;Call and Response|سؤال وجواب;Auto-Tune;Harmonies;Instrumental|موسيقى فقط')},
+{id:'f',n:['الإيقاع والإنتاج','Rhythm & production'],i:L('Slow Tempo|بطيء;Mid-tempo;Upbeat|سريع;Groovy;Half-time;Swing;Syncopated;4/4;6/8;Maqsum rhythm|إيقاع مقسوم;Saidi rhythm|إيقاع صعيدي;Khaleeji rhythm|إيقاع خليجي;Wahda rhythm|إيقاع وحدة;Studio Quality;Live Recording;Warm Analog;Minimal;Layered;Reverb;Crisp Mix;Cinematic Production;Dry Vocals;Bass Heavy;Stripped Back')},
+{id:'e',s:1,n:['الحقبة الزمنية','Era'],i:L('1950s;1960s;1970s;1980s;1990s;2000s;2010s;2020s;Golden Age Arabic|العصر الذهبي;Vintage|كلاسيكي;Modern|حديث')},
+{id:'c',n:['وسوم مخصصة','Custom'],i:[]}];
+const ST=L('Intro;Verse;Pre-Chorus;Chorus;Post-Chorus;Hook;Bridge;Breakdown;Drop;Interlude;Instrumental Break;Outro;End');
+const PF=L('Lead Vocal|منفرد;Male Vocal|رجل;Female Vocal|امرأة;Duet|ثنائي;Choir|كورال;Backing Vocals;Call and Response|سؤال وجواب;Harmonies;Whispered|همس;Spoken Word|إلقاء;Rap;Humming|دندنة;Ad-libs|ارتجال;Chants|هتاف;Belted;Soft;Building Intensity');
+const FX=L('Beat Drop;Build-up;Silence;Key Change;Tempo Change;Fade Out;Whistling;Sigh;Laughter;Crowd Singing;Applause;Vinyl Crackle');
+const GS=L('Oud Solo;Qanun Solo;Ney Solo;Violin Solo;Guitar Solo;Piano Solo;Sax Solo;Drum Fill');
+const TP=L('pop|بوب;tarab|طرب;rap|راب;ballad|بالاد');
+const TPL={pop:'Intro;Verse;Pre-Chorus;Chorus;Verse;Pre-Chorus;Chorus;Bridge;Chorus;Outro',
+tarab:'Intro | Oud;Verse | Male Vocal;Chorus | Choir;Instrumental Break | Qanun;Verse;Chorus | Choir;Bridge | Spoken Word;Chorus | Choir;Outro | Oud',
+rap:'Intro;Verse | Rap;Hook | Choir;Verse | Rap;Hook | Choir;Bridge;Verse | Rap;Hook | Choir;Outro',
+ballad:'Intro | Piano;Verse | Soft;Verse | Soft;Chorus | Building Intensity;Verse;Chorus | Powerful;Bridge | Whispered;Final Chorus | Choir;Outro | Fade Out'};
+let S={sel:[],lyr:'',title:'',bpm:100,ub:true,ex:'',ver:1,lang:'ar',cu:[],tab:'st'},M={};
+try{Object.assign(S,JSON.parse(localStorage.getItem('suno_studio')||'{}'))}catch(e){}
+const sel=new Set(),ed=$('ed');
+const lab=x=>S.lang=='ar'&&x[1]?x[1]:x[0],lim=()=>S.ver?[1000,5000]:[200,3000];
+function save(){S.sel=[...sel];S.lyr=ed.value;try{localStorage.setItem('suno_studio',JSON.stringify(S))}catch(e){}}
+function toast(m,ms){const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('on'),ms||2200)}
+async function cp(id){const v=$(id).value;if(!v.trim())return toast(t('em'));try{await navigator.clipboard.writeText(v)}catch(e){$(id).select();document.execCommand('copy')}toast(t('ok'))}
+function go(id){S.tab=id;document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.id=='t-'+id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.g==id))}
+function lg(){S.lang=S.lang=='ar'?'en':'ar';ap()}
+function rd(){S.title=$('ti').value;S.bpm=+$('bp').value;S.ub=$('ub').checked;S.ver=+$('ver').value;S.ex=$('ex').value;$('bv').textContent=S.bpm;upd()}
+function rp(){const g=$('pg');g.innerHTML='';P.forEach(p=>{const c=document.createElement('div');c.className='card pn';c.innerHTML=`<h3><span>${p.n[S.lang=='ar'?0:1]}</span><small id="k${p.id}"></small></h3>`;
+if(p.id=='c'){c.insertAdjacentHTML('beforeend',`<div class="row" style="margin-bottom:8px"><input type="text" id="cu" class="sp" placeholder="${t('cuph')}" onkeydown="if(event.key=='Enter')addC()"><button class="btn" onclick="addC()">+</button></div>`)}
+const w=document.createElement('div');w.className='chips';p.i.forEach(x=>{const b=document.createElement('button');b.className='chip';b.dataset.k=x[0];b.textContent=lab(x);b.title=x[0];b.onclick=()=>tg(x[0],p);w.append(b)});c.append(w);g.append(c)})}
+function tg(k,p){if(sel.has(k))sel.delete(k);else{if(p.s)p.i.forEach(([x])=>sel.delete(x));sel.add(k)}upd()}
+function addC(){const v=$('cu').value.trim();if(!v)return;if(!M[v]){S.cu.push(v);P[7].i.push([v,'']);M[v]='c'}sel.add(v);rp();upd()}
+function clS(){sel.clear();upd()}
+function mk(id,a,fn){const c=$(id);c.innerHTML='';a.forEach(x=>{const b=document.createElement('button');b.className='chip';b.textContent=lab(x);b.onclick=()=>fn(x[0]);c.append(b)})}
+function side(){mk('ct',TP,tpl);mk('cs',ST,k=>ins('['+k+']'));mk('cv',PF,asg);const n=[...sel].filter(k=>M[k]=='n');mk('ci',n.length?n.map(k=>[k+' Solo']):GS,k=>ins('['+k+']'));mk('cf',FX,k=>ins('['+k+']'))}
+function style(){const a=[];P.forEach(p=>{[...sel].filter(k=>M[k]==p.id).forEach(k=>a.push(k));if(p.id=='f'&&S.ub)a.push(S.bpm+' BPM')});return a.join(', ')}
+function upd(){document.querySelectorAll('.chip[data-k]').forEach(b=>b.classList.toggle('on',sel.has(b.dataset.k)));
+P.forEach(p=>{const e=$('k'+p.id);if(e)e.textContent=[...sel].filter(k=>M[k]==p.id).length||''});
+const s=style(),mx=lim()[0],h=k=>sel.has(k),w=[];$('so').value=s;$('xs').value=s;
+$('sc').textContent=s.length+' / '+mx;$('sc').className='cnt'+(s.length>mx?' bad':'');
+if(h('Instrumental')&&['Male Vocal','Female Vocal','Duet','Choir'].some(h))w.push(t('w1'));
+if([...sel].filter(k=>M[k]=='g').length>4)w.push(t('w2'));
+if(h('Male Vocal')&&h('Female Vocal')&&!h('Duet'))w.push(t('w4'));
+if(s.length>mx)w.push(t('w3'));
+$('wr').textContent=w.map(x=>'⚠ '+x).join('   ');side();u2()}
+function put(a,s,e){ed.focus();ed.setSelectionRange(s,e);if(!document.execCommand('insertText',false,a))ed.setRangeText(a,s,e,'end');u2()}
+function ins(x){const s=ed.selectionStart,e=ed.selectionEnd,v=ed.value;put((s>0&&v[s-1]!='\n'?'\n':'')+x+'\n',s,e)}
+function asg(v){const b=ed.value.slice(0,ed.selectionStart),r=/^\[(?:Intro|Verse|Pre-Chorus|Chorus|Post-Chorus|Final Chorus|Hook|Bridge|Breakdown|Interlude|Instrumental|Drop|Outro|End)[^\]\n]*\]/gmi;let m,l;while(m=r.exec(b))l=m;
+if(!l)return ins('['+v+']');if(l[0].includes('| '+v))return;const p=l.index+l[0].length-1;put(' | '+v,p,p)}
+function tpl(k){if(ed.value.trim()&&!confirm(t('cf')))return;ed.value=TPL[k].split(';').map(s=>'['+s+']\n').join('\n');u2()}
+function clL(){if(ed.value.trim()&&!confirm(t('cf')))return;ed.value='';u2()}
+function u2(){const v=ed.value,ls=v.split('\n').filter(x=>x.trim()),tg=ls.filter(x=>/^\s*\[.*\]\s*$/.test(x)),ib=tg.filter(x=>/solo|instrumental|intro|outro|break|interlude/i.test(x)).length,
+sec=Math.round((ls.length-tg.length+ib)*8*60/S.bpm),n=v.length,mx=lim()[1];
+$('ls').textContent=`${ls.length} ${t('ln')} · ${v.trim()?v.trim().split(/\s+/).length:0} ${t('wd')} · ${n} / ${mx}`;$('ls').className='cnt'+(n>mx?' bad':'');
+$('du').textContent=`${t('du')}: ≈ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;$('xl').value=v;save()}
+const fn=()=>'SunoAI_'+(S.title||'song').replace(/[\\/:*?"<>|]/g,'_');
+function dl(n,c,ty){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:ty||'text/plain;charset=utf-8'}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),999)}
+function exTxt(){dl(fn()+'.txt',`Title: ${S.title}\nStyle: ${$('so').value}\n${S.ex?'Exclude: '+S.ex+'\n':''}\n--- Lyrics ---\n${ed.value}`)}
+function exJ(){save();dl(fn()+'.json',JSON.stringify(S),'application/json')}
+function ldJ(i){const f=i.files[0];if(!f)return;f.text().then(x=>{try{Object.assign(S,JSON.parse(x));init()}catch(e){toast('JSON ✗')}});i.value=''}
+/* Auto structure + style suggestion (local, offline) */
+const SEC=/^\s*\[(?:Intro|Verse|Pre-Chorus|Chorus|Post-Chorus|Final Chorus|Hook|Bridge|Breakdown|Interlude|Instrumental|Drop|Outro|End)[^\]\n]*\]\s*$/i,SEP=/^\s*([-*=_~\/]\s*){3,}$/;
+const nk=l=>l.replace(/[\u064B-\u065F\u0670]/g,'').replace(/[^\p{L}\p{N}]/gu,'').toLowerCase();
+function sim(a,b){const x=new Set(a.map(nk)),y=new Set(b.map(nk));let n=0;x.forEach(k=>y.has(k)&&n++);return n/Math.max(x.size,y.size)}
+function blocks(v){let b=v.replace(/\r/g,'').split('\n').map(l=>SEC.test(l)||SEP.test(l)?'':l).join('\n').split(/\n\s*\n/).map(x=>x.split('\n').filter(l=>l.trim())).filter(x=>x.length);
+if(b.length==1&&b[0].length>6){const a=b[0];b=[];for(let i=0;i<a.length;i+=4)b.push(a.slice(i,i+4))}return b}
+function label(b){const n=b.length,g=b.map(()=>-1);let c=0;for(let i=0;i<n;i++)if(g[i]<0){g[i]=c;for(let j=i+1;j<n;j++)if(g[j]<0&&sim(b[i],b[j])>=.6)g[j]=c;c++}
+const cnt=g.map(x=>g.filter(y=>y==x).length),mx=Math.max(...cnt),ch=mx>1?g[cnt.indexOf(mx)]:-1,r=g.map(x=>x==ch?'Chorus':'Verse');let seen=0;
+for(let i=0;i<n;i++){if(r[i]=='Chorus'){seen++;continue}
+if(i>0&&r[i-1]=='Verse'&&b[i].length<=2&&r[i+1]=='Chorus')r[i]='Pre-Chorus';
+else if(seen>=2&&cnt[i]==1)r[i]=i==n-1&&b[i].length<=2?'Outro':'Bridge'}return r}
+function auto(R){const v=ed.value;if(!v.trim())return toast(t('em'));const b=blocks(v),r=R&&R.length==b.length?R:label(b),ch=sel.has('Choir'),n1=[...sel].find(k=>M[k]=='n'),
+o=b.map((x,i)=>`[${r[i]}${r[i]=='Chorus'&&ch?' | Choir':''}]\n`+x.join('\n'));
+if($('io').checked){o.unshift(`[Intro${n1?' | '+n1:''}]`);o.push(`[Outro${n1?' | '+n1:''}]`)}
+ed.focus();ed.select();if(!document.execCommand('insertText',false,o.join('\n\n')+'\n'))ed.value=o.join('\n\n')+'\n';u2();toast(`${t('au')} ${b.length} ${t('fs')}`)}
+const KW=[[/حب|عشق|هوى|حبيب|غرام|قلبي|love|heart/g,['Romantic','Emotional','Piano']],
+[/حزن|دمع|فراق|وداع|غياب|ألم|وجع|بكاء|sad|tears/g,['Melancholic','Longing','Slow Tempo','Hijaz maqam','Strings']],
+[/شوق|حنين|ذكر[ىي]|ماضي|nostalg/g,['Nostalgic','Longing','Ney']],
+[/أمل|فجر|نور|غد|حلم|أحلام|hope|dream/g,['Hopeful','Dreamy','Rast maqam']],
+[/وطن|بلاد|أرض|شهيد|نصر|حرية|عز[ةه]|فخر/g,['Epic','Majestic','Triumphant','Choir','Hijaz maqam']],
+[/رقص|فرح|عرس|زفاف|احتفال|دبكة|party|dance/g,['Festive','Upbeat','Darbuka','Daf','Ajam maqam']],
+[/ليل|قمر|نجم|سهر|night|moon/g,['Atmospheric','Dreamy']],
+[/صحراء|بدو|خيمة|ناقة|desert/g,['Bedouin','Oud']],
+[/الله|رب[يي]|دعاء|نبي|رحمة|إيمان|جنة|صلاة/g,['Islamic Nasheed','Choir','Daf']],
+[/ثورة|غضب|قهر|ظلم|حرب|rage|war/g,['Dramatic','Powerful Vocals']]];
+function sug(){const v=ed.value;if(!v.trim())return toast(t('em'));if(sel.size&&!confirm(t('cf2')))return;
+const r=KW.map(([re,tg])=>[(v.match(re)||[]).length,tg]).filter(x=>x[0]).sort((a,b)=>b[0]-a[0]).slice(0,3),
+ar=(v.match(/[\u0600-\u06FF]/g)||[]).length>(v.match(/[a-z]/gi)||[]).length,ls=v.split('\n').filter(l=>l.trim()&&!/^\s*\[/.test(l)),aw=ls.join(' ').split(/\s+/).length/Math.max(ls.length,1);
+let a=[...new Set(r.flatMap(x=>x[1]))];if(!a.some(k=>M[k]=='g'))a.unshift(ar?(aw>=6&&r.length?'Arabic Tarab':'Arabic Pop'):'Pop');
+a=a.slice(0,10);sel.clear();a.slice().reverse().forEach(k=>{const p=P.find(x=>x.id==M[k]);if(p&&p.s)p.i.forEach(([x])=>sel.delete(x));sel.add(k)});
+S.bpm=a.includes('Slow Tempo')?72:a.includes('Upbeat')?112:a.includes('Epic')?92:88;S.ub=true;$('bp').value=S.bpm;$('ub').checked=true;$('bv').textContent=S.bpm;upd();go('st');toast(`${t('sgd')} ${sel.size} ${t('sgt')}`)}
+/* Gemini (key stays in this browser only, never in project files) */
+const gk=()=>localStorage.getItem('suno_gk')||'',GM=()=>localStorage.getItem('suno_gm')||'gemini-2.5-flash';
+function setKey(){const k=prompt(t('ky'),gk());if(k===null)return;localStorage.setItem('suno_gk',k.trim());if(k.trim()){const m=prompt(t('md'),GM());if(m)localStorage.setItem('suno_gm',m.trim())}}
+async function gem(p,json){if(!gk())setKey();if(!gk())throw new Error('API key');
+const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GM()}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':gk()},body:JSON.stringify({contents:[{parts:[{text:p}]}],generationConfig:json?{responseMimeType:'application/json',temperature:.4}:{temperature:.9}})});
+const d=await r.json();if(!r.ok)throw new Error(d.error?.message||r.status);return d.candidates[0].content.parts.map(x=>x.text||'').join('')}
+const PR=`You are an expert Suno AI prompt engineer. The lyrics (often Arabic) are split into numbered blocks. Choose style tags ONLY from this exact list: %
+Pick 6-10 tags: 1-2 genres, at most one maqam (only if fitting) and one era, 1-3 moods, 2-4 instruments, 1-3 vocal tags matching the lyrics. Also return "bpm" (50-200), "sections": one label per block, each exactly one of Intro, Verse, Pre-Chorus, Chorus, Post-Chorus, Bridge, Breakdown, Outro (no numbers; identical or repeated blocks are the Chorus), and "exclude": a short English comma list of styles to avoid. Return only JSON: {"tags":[],"bpm":0,"sections":[],"exclude":""}`;
+async function ai(){const v=ed.value;if(!v.trim())return toast(t('em'));
+try{toast(t('wt'),90000);const n=blocks(v).map((x,i)=>`#${i+1}\n${x.join('\n')}`).join('\n\n');
+const o=JSON.parse((await gem(PR.replace('%',Object.keys(M).join(' | '))+'\n\n'+n,1)).replace(/```json|```/g,'').trim()),
+A=['Intro','Verse','Pre-Chorus','Chorus','Post-Chorus','Bridge','Breakdown','Outro'];
+sel.clear();(o.tags||[]).filter(k=>M[k]).forEach(k=>{const p=P.find(x=>x.id==M[k]);if(p.s)p.i.forEach(([x])=>sel.delete(x));sel.add(k)});
+if(o.bpm>=50&&o.bpm<=200){S.bpm=Math.round(o.bpm);S.ub=true;$('bp').value=S.bpm;$('ub').checked=true;$('bv').textContent=S.bpm}
+S.ex=String(o.exclude||'');$('ex').value=S.ex;upd();auto((o.sections||[]).map(x=>A.includes(x)?x:'Verse'));toast(t('ok2'))}
+catch(e){toast('Gemini ✗ '+(e.message||''),6000)}}
+async function gen(){const i=prompt(t('ip'));if(!i)return;
+try{toast(t('wt'),90000);const x=(await gem(`Write original song lyrics about: ${i}. Use the same language as the idea (Arabic by default, natural rhyme). Structure: 3 verses of 4 lines, a catchy 4-line chorus repeated exactly 3 times, and a short 2-4 line bridge. Separate every section with ONE blank line. Output ONLY the lyrics: no tags, no title, no markdown, no notes.`)).trim();
+ed.focus();ed.select();if(!document.execCommand('insertText',false,x+'\n'))ed.value=x+'\n';u2();await ai()}
+catch(e){toast('Gemini ✗ '+(e.message||''),6000)}}
+/* MIDI: IndexedDB */
+const DB=new Promise(r=>{try{const q=indexedDB.open('suno_midi',1);q.onupgradeneeded=()=>q.result.createObjectStore('f',{keyPath:'id',autoIncrement:true});q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+const os=async m=>(await DB).transaction('f',m).objectStore('f'),rq=r=>new Promise(o=>{r.onsuccess=()=>o(r.result);r.onerror=()=>o(null)});
+async function mAdd(i){const f=i.files[0];if(!f)return;const g=[...sel].find(k=>M[k]=='g')||'General';try{await rq((await os('readwrite')).add({g,name:f.name,b:f}))}catch(e){toast('MIDI ✗')}i.value='';mList()}
+async function mDel(id){try{await rq((await os('readwrite')).delete(id))}catch(e){}mList()}
+async function mList(){const c=$('ml');c.innerHTML='';let a=[];try{a=await rq((await os('readonly')).getAll())||[]}catch(e){}
+if(!a.length){c.textContent=t('nom');return}const cur=[...sel].find(k=>M[k]=='g');a.sort((x,y)=>(y.g==cur)-(x.g==cur));
+a.forEach(f=>{const d=document.createElement('div'),l=document.createElement('a'),g=document.createElement('small'),x=document.createElement('button');d.className='mi';l.textContent=f.name;l.href=URL.createObjectURL(f.b);l.download=f.name;g.textContent=f.g;g.className='cnt sp';x.className='btn dng';x.textContent='✕';x.onclick=()=>mDel(f.id);d.append(l,g,x);c.append(d)})}
+function ap(){const r=S.lang=='ar';document.documentElement.dir=r?'rtl':'ltr';document.documentElement.lang=S.lang;
+document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));document.querySelectorAll('[data-p]').forEach(e=>e.placeholder=t(e.dataset.p));
+$('lgb').textContent=r?'English':'العربية';rp();upd();mList();go(S.tab)}
+function init(){sel.clear();S.sel.forEach(k=>sel.add(k));P[7].i=S.cu.map(k=>[k,'']);M={};P.forEach(p=>p.i.forEach(([k])=>M[k]=p.id));
+ed.value=S.lyr;$('ti').value=S.title;$('bp').value=S.bpm;$('bv').textContent=S.bpm;$('ub').checked=S.ub;$('ex').value=S.ex;$('ver').value=S.ver;ap()}
+init();
+</script>
+</body>
+</html>
